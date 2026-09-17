@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pick the Right Card</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #1565c0;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.game {
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 34px;
+    margin-bottom: 30px;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.card {
+    height: 180px;
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+.card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.card.flipped .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+    border: 2px solid rgba(0,0,0,0.25);
+}
+
+.card-front {
+    background: #e53935;
+    color: white;
+    font-size: 50px;
+    box-shadow: 0 7px 15px rgba(0,0,0,0.25);
+}
+
+.card-back {
+    background: white;
+    color: black;
+    transform: rotateY(180deg);
+    font-size: 50px;
+}
+
+/* Hidden until a wrong card is clicked */
+#videoContainer {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+#memeVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: black;
+}
+
+#closeVideo {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 50%;
+    background: white;
+    color: black;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10000;
+}
+
+#closeVideo:hover {
+    background: #eeeeee;
+}
+
+@media (max-width: 650px) {
+    h1 {
+        font-size: 27px;
+    }
+
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card {
+        height: 150px;
+    }
+
+    .card-front,
+    .card-back {
+        font-size: 42px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="game">
+    <h1>🃏 PICK THE RIGHT CARD</h1>
+    <div class="cards" id="cards"></div>
+</div>
+
+<!-- The video is already included in this folder.
+     It is hidden until a wrong card is clicked. -->
+<div id="videoContainer">
+    <button id="closeVideo" type="button">✕</button>
+
+    <video
+        id="memeVideo"
+        src="surprise.mp4"
+        playsinline>
+    </video>
+</div>
+
+<script>
+const cardsContainer = document.getElementById("cards");
+const videoContainer = document.getElementById("videoContainer");
+const memeVideo = document.getElementById("memeVideo");
+const closeVideo = document.getElementById("closeVideo");
+
+let correctCard = 0;
+let locked = false;
+
+function createCards() {
+    cardsContainer.innerHTML = "";
+
+    correctCard = Math.floor(Math.random() * 8);
+    locked = false;
+
+    for (let i = 0; i < 8; i++) {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const inner = document.createElement("div");
+        inner.className = "card-inner";
+
+        const front = document.createElement("div");
+        front.className = "card-front";
+        front.textContent = "❓";
+
+        const back = document.createElement("div");
+        back.className = "card-back";
+        back.textContent = (i === correctCard) ? "⭐" : "❌";
+
+        inner.appendChild(front);
+        inner.appendChild(back);
+        card.appendChild(inner);
+        cardsContainer.appendChild(card);
+
+        card.addEventListener("click", function () {
+            if (locked) return;
+
+            locked = true;
+            card.classList.add("flipped");
+
+            if (i !== correctCard) {
+                setTimeout(function () {
+                    videoContainer.style.display = "flex";
+                    memeVideo.currentTime = 0;
+                    memeVideo.play().catch(function () {});
+                }, 250);
+            } else {
+                setTimeout(function () {
+                    locked = false;
+                }, 700);
+            }
+        });
+    }
+}
+
+closeVideo.addEventListener("click", function () {
+    memeVideo.pause();
+    memeVideo.currentTime = 0;
+    videoContainer.style.display = "none";
+    createCards();
+});
+
+createCards();
+</script>
+
+</body>
+</html>
